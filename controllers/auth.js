@@ -1,0 +1,108 @@
+import ErrorResponse from '../utils/ErrorResponse.js';
+import asyncHandler from '../middleware/async.js';
+import User from '../models/User.js';
+import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const allowedDomains = ['circuithouse.tech', 'lumio.co.in'];
+
+//  @desc   Login User
+//  @route  POST /api/v1/auth/login
+//  @access  Public
+export const login = asyncHandler(async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return next(new ErrorResponse('idToken is required', 400));
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const {
+      sub: providerId,
+      email,
+      email_verified,
+      name,
+      picture,
+      phoneNumber,
+    } = payload;
+
+    if (!email || !email_verified)
+      return next(new ErrorResponse('Email not verified by Google', 403));
+
+    // Validate domain
+    const domain = email.split('@')[1].toLowerCase();
+    if (
+      !allowedDomains.includes(domain) &&
+      !allowedDomains.some((d) => domain.endsWith('.' + d))
+    ) {
+      return next(new ErrorResponse('Email domain not allowed', 403));
+    }
+    const user = await User.findOneAndUpdate(
+      { 'details.email': email },
+      {
+        $set: {
+          provider: 'google',
+          providerId,
+          name,
+          profilePhotoUrl: picture,
+          lastLogin: new Date(),
+          details: { phoneNumber, email },
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true, new: true, runValidators: true }
+    );
+    const accessToken = user.getSignedAccessToken();
+    const refreshToken = user.getSignedRefreshToken();
+
+    res.status(200).json({
+      success: true,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
+  } catch (err) {
+    console.log(`Login error: ${err}`.red.bold);
+    return next(new ErrorResponse('Invalid Token', 401));
+  }
+});
+
+//  @desc   Get Current User
+//  @route  GET /api/v1/auth/me
+//  @access  Private
+export const getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+//  @desc   Refresh Access Token
+//  @route  POST /api/v1/auth/refresh
+//  @access  Public
+export const refreshToken = asyncHandler(async (req, res, next) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    console.log(`Error Before: ${err}`.red.bold);
+    return next(new ErrorResponse('Invalid Token', 403));
+  }
+  try {
+    const verifyToken = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_JWT_SECRET
+    );
+    const id = verifyToken.id;
+    const user = await User.findById(id);
+    const accessToken = user.getSignedAccessToken();
+    res.status(200).json({
+      success: true,
+      accessToken: accessToken,
+    });
+  } catch (err) {
+    console.log(`Error: ${err}`.red.bold);
+    return next(new ErrorResponse('Invalid Token', 403));
+  }
+});
