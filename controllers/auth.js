@@ -68,6 +68,19 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const justCreate = asyncHandler(async (req, res, next) => {
+  const user = await User.create(req.body);
+  const accessToken = user.getSignedAccessToken();
+  const refreshToken = user.getSignedRefreshToken();
+
+  res.status(200).json({
+    success: true,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    data: user,
+  });
+});
+
 //  @desc   Get Current User
 //  @route  GET /api/v1/auth/me
 //  @access  Private

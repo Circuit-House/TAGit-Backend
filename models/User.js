@@ -9,7 +9,6 @@ const detailsSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     trim: true,
     lowercase: true,
-    unique: true,
     match: [emailRegex, 'Email must be at circuithouse.tech or lumio.co.in'],
   },
 });
@@ -64,6 +63,6 @@ UserSchema.methods.getSignedRefreshToken = function () {
   });
 };
 
-UserSchema.index({ provider: 1, providerId: 1 }, { unique: true });
+// UserSchema.index({ provider: 1, providerId: 1 }, { unique: true });
 
 export default mongoose.model('User', UserSchema);
