@@ -14,6 +14,7 @@ connectDB();
 // Route Files
 import auth from './routes/auth.js';
 import purchase from './routes/purchase.js';
+import asset from './routes/asset.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 // Mount Routes
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/purchase', purchase);
+app.use('/api/v1/asset', asset);
 
 // Error Middleware
 app.use(errorHandler);
