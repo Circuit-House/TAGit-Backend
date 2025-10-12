@@ -130,3 +130,14 @@ export const modList = asyncHandler(async (req, res, next) => {
     data: users,
   });
 });
+
+//  @desc   All List
+//  @route  POST /api/v1/auth/modlist
+//  @access  Public
+export const userList = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  res.status(200).json({
+    success: true,
+    data: users,
+  });
+});
