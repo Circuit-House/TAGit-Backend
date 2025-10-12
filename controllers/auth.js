@@ -40,7 +40,7 @@ export const login = asyncHandler(async (req, res, next) => {
       return next(new ErrorResponse('Email domain not allowed', 403));
     }
     const user = await User.findOneAndUpdate(
-      { 'details.email': email },
+      { email },
       {
         $set: {
           provider: 'google',
@@ -48,7 +48,7 @@ export const login = asyncHandler(async (req, res, next) => {
           name,
           profilePhotoUrl: picture,
           lastLogin: new Date(),
-          details: { phoneNumber, email },
+          phoneNumber: phoneNumber,
         },
         $setOnInsert: { createdAt: new Date() },
       },
@@ -118,4 +118,15 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
     console.log(`Error: ${err}`.red.bold);
     return next(new ErrorResponse('Invalid Token', 403));
   }
+});
+
+//  @desc   Admin and Purchase List
+//  @route  POST /api/v1/auth/modlist
+//  @access  Public
+export const modList = asyncHandler(async (req, res, next) => {
+  const users = await User.find({ role: { $in: ['admin', 'purchaser'] } });
+  res.status(200).json({
+    success: true,
+    data: users,
+  });
 });
