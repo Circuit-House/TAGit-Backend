@@ -28,7 +28,7 @@ export const updateManagerRequest = asyncHandler(async (req, res, next) => {
   request = await Purchase.findByIdAndUpdate(userId, managerApproval, {
     new: true,
     runValidators: true,
-  });
+  }).populate('requiredBy requestedBy manager', 'name email role');
   res.status(200).json({
     success: true,
     data: request,
@@ -48,7 +48,7 @@ export const updateRequest = asyncHandler(async (req, res, next) => {
   request = await Purchase.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
-  });
+  }).populate('requiredBy requestedBy manager', 'name email role');
   res.status(200).json({
     success: true,
     data: request,
