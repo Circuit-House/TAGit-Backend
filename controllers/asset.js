@@ -8,6 +8,11 @@ import Allocation from '../models/Allocation.js';
 //  @access  Private
 export const createAsset = asyncHandler(async (req, res, next) => {
   const create = await Asset.create(req.body);
+  await create
+    .populate('purchaser', 'name email role')
+    .populate('owner', 'name email role')
+    .populate('allocation.allocatedBy', 'name email role')
+    .populate('allocation.allocatedTo', 'name email role');
   res.status(200).json({
     success: true,
     data: create,
@@ -21,7 +26,11 @@ export const updateAsset = asyncHandler(async (req, res, next) => {
   const update = await Asset.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate('purchaser', 'name email role')
+    .populate('owner', 'name email role')
+    .populate('allocation.allocatedBy', 'name email role')
+    .populate('allocation.allocatedTo', 'name email role');
   res.status(200).json({
     success: true,
     data: update,
@@ -77,7 +86,11 @@ export const getAssetListById = asyncHandler(async (req, res, next) => {
 //  @route  POST /api/v1/asset/
 //  @access  Private, Authorized
 export const getAssets = asyncHandler(async (req, res, next) => {
-  const assets = await Asset.find();
+  const assets = await Asset.find()
+    .populate('purchaser', 'name email role')
+    .populate('owner', 'name email role')
+    .populate('allocation.allocatedBy', 'name email role')
+    .populate('allocation.allocatedTo', 'name email role');
   res.status(200).json({
     success: true,
     data: assets,
