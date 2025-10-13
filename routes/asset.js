@@ -13,7 +13,7 @@ const router = express.Router();
 router
   .route('/')
   .post(protect, authorize('admin', 'purchaser'), createAsset)
-  .get(protect, authorize('admin'), getAssets);
+  .get(protect, getAssets);
 router
   .route('/:id')
   .put(protect, authorize('admin', 'purchaser'), updateAsset)
