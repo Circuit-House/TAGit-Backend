@@ -7,6 +7,8 @@ import Purchase from '../models/Purchase.js';
 //  @access  Private
 export const createRequest = asyncHandler(async (req, res, next) => {
   const create = await Purchase.create(req.body);
+  await create.populate('requiredBy requestedBy manager', 'name email role');
+
   res.status(200).json({
     success: true,
     data: create,
