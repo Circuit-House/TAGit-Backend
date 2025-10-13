@@ -1,10 +1,7 @@
 import mongoose from 'mongoose';
 
 const PurchaseSchema = new mongoose.Schema({
-  asset: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Asset',
-  },
+  assetName: { type: String },
   requiredBy: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
