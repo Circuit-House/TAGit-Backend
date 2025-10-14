@@ -31,7 +31,7 @@ const AssetSchema = mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'Allocation',
   },
-  availablity: { type: String },
+  availablity: { type: Boolean },
   purchasedOn: { type: String },
 });
 
