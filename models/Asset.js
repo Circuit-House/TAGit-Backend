@@ -7,7 +7,7 @@ const AssetSchema = mongoose.Schema({
     required: [true, 'Please add a Serial Number'],
   },
   warranty: {
-    type: Date,
+    type: String,
     required: [true, 'Please add Warranty Date'],
   },
   invoiceAvailable: {
@@ -32,7 +32,7 @@ const AssetSchema = mongoose.Schema({
     ref: 'Allocation',
   },
   availablity: { type: String },
-  purchasedOn: { type: Date },
+  purchasedOn: { type: String },
 });
 
 export default mongoose.model('Asset', AssetSchema);
