@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 
-const emailRegex = /^[A-Za-z0-9._%+-]+@(circuithouse\.tech|lumio\.co\.in)$/i;
+// const emailRegex = /^[A-Za-z0-9._%+-]+@(circuithouse\.tech|lumio\.co\.in)$/i;
 const UserSchema = new mongoose.Schema({
   provider: {
     type: String,
@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
     unique: true,
-    match: [emailRegex, 'Email must be at circuithouse.tech or lumio.co.in'],
+    // match: [emailRegex, 'Email must be at circuithouse.tech or lumio.co.in'],
   },
   lastLogin: {
     type: Date,
