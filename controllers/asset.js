@@ -9,7 +9,7 @@ import Allocation from '../models/Allocation.js';
 export const createAsset = asyncHandler(async (req, res, next) => {
   const create = await Asset.create(req.body);
   await create.populate(
-    'purchase owner allocation.allocatedBy allocation.allocatedTo',
+    'purchaser owner allocation.allocatedBy allocation.allocatedTo',
     'name email role'
   );
   res.status(200).json({
