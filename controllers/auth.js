@@ -31,14 +31,16 @@ export const login = asyncHandler(async (req, res, next) => {
     if (!email || !email_verified)
       return next(new ErrorResponse('Email not verified by Google', 403));
 
+    // Commented for temporary purpose
+
     // Validate domain
-    const domain = email.split('@')[1].toLowerCase();
-    if (
-      !allowedDomains.includes(domain) &&
-      !allowedDomains.some((d) => domain.endsWith('.' + d))
-    ) {
-      return next(new ErrorResponse('Email domain not allowed', 403));
-    }
+    // const domain = email.split('@')[1].toLowerCase();
+    // if (
+    //   !allowedDomains.includes(domain) &&
+    //   !allowedDomains.some((d) => domain.endsWith('.' + d))
+    // ) {
+    //   return next(new ErrorResponse('Email domain not allowed', 403));
+    // }
     const user = await User.findOneAndUpdate(
       { email },
       {
