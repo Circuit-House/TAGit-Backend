@@ -3,12 +3,25 @@ import asyncHandler from '../middleware/async.js';
 import Allocation from '../models/Allocation.js';
 import Asset from '../models/Asset.js';
 
+const allocationPopulate = [
+  { path: 'allocatedBy', select: 'name email role' },
+  { path: 'allocatedTo', select: 'name email role' },
+  {
+    path: 'asset',
+    select: 'name serialNumber owner purchaser assetImageUrl invoiceUrl',
+    populate: [
+      { path: 'owner', select: 'name email role' },
+      { path: 'purchaser', select: 'name email role' },
+    ],
+  },
+];
+
 //  @desc   Create Allocation
 //  @route  POST /api/v1/allocation
 //  @access  Private
 export const createAllocation = asyncHandler(async (req, res, next) => {
   const create = await Allocation.create(req.body);
-  await create.populate('allocatedBy allocatedTo asset');
+  await create.populate(allocationPopulate);
   res.status(200).json({
     success: true,
     data: create,
@@ -19,9 +32,7 @@ export const createAllocation = asyncHandler(async (req, res, next) => {
 //  @route  GET /api/v1/allocation
 //  @access  Private
 export const getAllocations = asyncHandler(async (req, res, next) => {
-  const allocations = await Allocation.find().populate(
-    'allocatedBy allocatedTo asset'
-  );
+  const allocations = await Allocation.find().populate(allocationPopulate);
   res.status(200).json({
     success: true,
     data: allocations,
@@ -33,7 +44,7 @@ export const getAllocations = asyncHandler(async (req, res, next) => {
 //  @access  Private
 export const getAllocationById = asyncHandler(async (req, res, next) => {
   const allocations = await Allocation.findById(req.params.id).populate(
-    'allocatedBy allocatedTo asset'
+    allocationPopulate
   );
   res.status(200).json({
     success: true,
@@ -48,7 +59,7 @@ export const getAllocationByUserId = asyncHandler(async (req, res, next) => {
   let userId = req.params.id;
   const allocations = await Allocation.find({
     $or: [{ allocatedTo: userId }, { allocatedBy: userId }],
-  }).populate('allocatedBy allocatedTo asset');
+  }).populate(allocationPopulate);
   res.status(200).json({
     success: true,
     data: allocations,
@@ -61,7 +72,7 @@ export const getAllocationByUserId = asyncHandler(async (req, res, next) => {
 export const getAllocationByAssetId = asyncHandler(async (req, res, next) => {
   let assetId = req.params.id;
   const allocations = await Allocation.find({ asset: assetId }).populate(
-    'allocatedBy allocatedTo asset'
+    allocationPopulate
   );
   res.status(200).json({
     success: true,
@@ -76,7 +87,7 @@ export const updateAllocation = asyncHandler(async (req, res, next) => {
   const update = await Allocation.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
-  }).populate('allocatedBy allocatedTo asset');
+  }).populate(allocationPopulate);
   if (!update) {
     return next(
       new ErrorResponse(`Allocation not found with id of ${req.params.id}`, 404)
