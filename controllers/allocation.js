@@ -94,8 +94,12 @@ export const updateAllocation = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // ✅ If allocationType is "Owner", update Asset owner to the new user
-  if (update.allocationType === 'Owner' && update.allocatedTo) {
+  // Case 1: allocationType is "Owner"
+  // Case 2: requestStatus is true
+  if (
+    (update.allocationType === 'Owner' && update.allocatedTo) ||
+    (update.requestStatus === true && update.allocatedTo)
+  ) {
     await Asset.findByIdAndUpdate(
       update.asset, // asset reference inside Allocation
       { owner: update.allocatedTo }, // set new owner
