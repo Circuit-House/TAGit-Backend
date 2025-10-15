@@ -1,6 +1,7 @@
 import ErrorResponse from '../utils/ErrorResponse.js';
 import asyncHandler from '../middleware/async.js';
 import Allocation from '../models/Allocation.js';
+import Asset from '../models/Asset.js';
 
 //  @desc   Create Allocation
 //  @route  POST /api/v1/allocation
@@ -13,14 +14,51 @@ export const createAllocation = asyncHandler(async (req, res, next) => {
   });
 });
 
+//  @desc   Get Allocations
+//  @route  GET /api/v1/allocation
+//  @access  Private
+export const getAllocations = asyncHandler(async (req, res, next) => {
+  const allocations = await Allocation.find();
+  res.status(200).json({
+    success: true,
+    data: allocations,
+  });
+});
+
 //  @desc   Get Allocation By id
 //  @route  GET /api/v1/allocation
 //  @access  Private
-export const getAllocation = asyncHandler(async (req, res, next) => {
-  const create = await Allocation.find(req.params.id);
+export const getAllocationById = asyncHandler(async (req, res, next) => {
+  const allocations = await Allocation.find({ id: req.params.id });
   res.status(200).json({
     success: true,
-    data: create,
+    data: allocations,
+  });
+});
+
+//  @desc   Get Allocation By User id
+//  @route  GET /api/v1/allocation
+//  @access  Private
+export const getAllocationByUserId = asyncHandler(async (req, res, next) => {
+  let userId = req.params.id;
+  const allocations = await Allocation.find({
+    $or: [{ allocatedTo: userId }, { allocatedBy: userId }],
+  });
+  res.status(200).json({
+    success: true,
+    data: allocations,
+  });
+});
+
+//  @desc   Get Allocation By Asset id
+//  @route  GET /api/v1/allocation
+//  @access  Private
+export const getAllocationByAssetId = asyncHandler(async (req, res, next) => {
+  let assetId = req.params.id;
+  const allocations = await Allocation.find({ asset: assetId });
+  res.status(200).json({
+    success: true,
+    data: allocations,
   });
 });
 
@@ -31,7 +69,21 @@ export const updateAllocation = asyncHandler(async (req, res, next) => {
   const update = await Allocation.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
-  });
+  }).populate('allocatedTo asset');
+  if (!update) {
+    return next(
+      new ErrorResponse(`Allocation not found with id of ${req.params.id}`, 404)
+    );
+  }
+
+  // ✅ If allocationType is "Owner", update Asset owner to the new user
+  if (update.allocationType === 'Owner' && update.allocatedTo) {
+    await Asset.findByIdAndUpdate(
+      update.asset, // asset reference inside Allocation
+      { owner: update.allocatedTo }, // set new owner
+      { new: true }
+    );
+  }
   res.status(200).json({
     success: true,
     data: update,

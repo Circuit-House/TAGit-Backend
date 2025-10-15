@@ -11,7 +11,7 @@ const AllocationSchema = mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  allocatedOn: {
+  allocatedRequestDate: {
     type: Date,
     default: Date.now(),
   },
@@ -25,6 +25,8 @@ const AllocationSchema = mongoose.Schema({
     type: String,
     required: [true, 'Please provide allocation type'],
   },
+  requestStatus: { type: Boolean },
+  allocationStatusDate: { type: Date },
   duration: {
     startTime: { type: Date },
     endTime: { type: Date },

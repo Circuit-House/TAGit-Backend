@@ -15,6 +15,7 @@ connectDB();
 import auth from './routes/auth.js';
 import purchase from './routes/purchase.js';
 import asset from './routes/asset.js';
+import allocation from './routes/allocation.js';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/purchase', purchase);
 app.use('/api/v1/asset', asset);
+app.use('/api/v1/allocation', allocation);
 
 // Error Middleware
 app.use(errorHandler);
