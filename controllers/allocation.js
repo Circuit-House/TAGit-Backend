@@ -32,7 +32,7 @@ export const getAllocations = asyncHandler(async (req, res, next) => {
 //  @route  GET /api/v1/allocation
 //  @access  Private
 export const getAllocationById = asyncHandler(async (req, res, next) => {
-  const allocations = await Allocation.find({ id: req.params.id }).populate(
+  const allocations = await Allocation.findById(req.params.id).populate(
     'allocatedBy allocatedTo asset'
   );
   res.status(200).json({
