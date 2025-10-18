@@ -8,7 +8,10 @@ import Allocation from '../models/Allocation.js';
 //  @access  Private
 export const createAsset = asyncHandler(async (req, res, next) => {
   const create = await Asset.create(req.body);
-  await create.populate('purchaser owner allocation', 'name email role');
+  await create
+    .populate('purchaser', 'name email role')
+    .populate('owner', 'name email role')
+    .populate('allocation');
   res.status(200).json({
     success: true,
     data: create,
@@ -25,7 +28,7 @@ export const updateAsset = asyncHandler(async (req, res, next) => {
   })
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation', 'name email role');
+    .populate('allocation');
   res.status(200).json({
     success: true,
     data: update,
@@ -69,7 +72,7 @@ export const getAssetListById = asyncHandler(async (req, res, next) => {
   })
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation', 'name email role');
+    .populate('allocation');
   res.status(200).json({
     success: true,
     data: assets,
@@ -83,7 +86,7 @@ export const getAssets = asyncHandler(async (req, res, next) => {
   const assets = await Asset.find()
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation', 'name email role');
+    .populate('allocation');
   res.status(200).json({
     success: true,
     data: assets,
