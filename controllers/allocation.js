@@ -183,6 +183,7 @@ export const approveAllocation = asyncHandler(async (req, res, next) => {
         asset.owner.toString() !== allocation.allocatedTo.toString()
       ) {
         asset.owner = allocation.allocatedTo;
+        asset.availablity = true;
         await asset.save();
       }
     }
