@@ -31,16 +31,31 @@ function isValidId(id) {
  */
 export const createAllocation = asyncHandler(async (req, res, next) => {
   // req.body should contain allocatedBy, allocatedTo, asset, allocationType, etc.
+  // create allocation
   const create = await Allocation.create(req.body);
 
-  // Do NOT auto-change asset owner on create. Approval should control owner change.
-  // If you prefer automatic owner change on create when allocationType==='Owner' and requestStatus===true,
-  // you can add logic here (but this file follows approve/reject flow).
+  // If the allocation references an asset, set that asset's `allocation` field
+  if (create.asset) {
+    try {
+      // update asset to reference this allocation id
+      await Asset.findByIdAndUpdate(
+        create.asset,
+        { allocation: create._id },
+        { new: true }
+      );
+    } catch (err) {
+      // log but don't fail the whole request; approval flow still in charge of owner change
+      console.error(
+        'Failed to set asset.allocation after allocation create:',
+        err
+      );
+    }
+  }
 
+  // Populate the allocation (including asset -> owner/purchaser if allocationPopulate defined)
   const populated = await Allocation.findById(create._id).populate(
     allocationPopulate
   );
-
   res.status(201).json({
     success: true,
     data: populated,
@@ -183,7 +198,7 @@ export const approveAllocation = asyncHandler(async (req, res, next) => {
         asset.owner.toString() !== allocation.allocatedTo.toString()
       ) {
         asset.owner = allocation.allocatedTo;
-        asset.availablity = true;
+        asset.availablity = false;
         await asset.save();
       }
     }

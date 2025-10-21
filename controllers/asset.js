@@ -11,7 +11,10 @@ export const createAsset = asyncHandler(async (req, res, next) => {
   await create
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation');
+    .populate({
+      path: 'allocation',
+      match: { allocatedBy: userId },
+    });
   res.status(200).json({
     success: true,
     data: create,
@@ -28,7 +31,10 @@ export const updateAsset = asyncHandler(async (req, res, next) => {
   })
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation');
+    .populate({
+      path: 'allocation',
+      match: { allocatedBy: userId },
+    });
   res.status(200).json({
     success: true,
     data: update,
@@ -72,7 +78,10 @@ export const getAssetListById = asyncHandler(async (req, res, next) => {
   })
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation');
+    .populate({
+      path: 'allocation',
+      match: { allocatedBy: userId },
+    });
   res.status(200).json({
     success: true,
     data: assets,
@@ -86,7 +95,23 @@ export const getAssets = asyncHandler(async (req, res, next) => {
   const assets = await Asset.find()
     .populate('purchaser', 'name email role')
     .populate('owner', 'name email role')
-    .populate('allocation');
+    .populate({
+      path: 'allocation', // this uses asset.allocation per-document
+      populate: [
+        { path: 'allocatedBy', select: 'name email role' },
+        { path: 'allocatedTo', select: 'name email role' },
+      ],
+    });
+
+  // await assets
+  // .populate('purchaser', 'name email role')
+  // .populate('owner', 'name email role')
+  // .populate({
+  // path: 'allocation',
+  // match: { allocatedBy: assets.allocation },
+  // });
+
+  console.log(assets);
   res.status(200).json({
     success: true,
     data: assets,
