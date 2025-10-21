@@ -53,8 +53,8 @@ const AllocationSchema = new mongoose.Schema(
     allocationStatusDate: { type: Date },
 
     duration: {
-      startTime: { type: Date },
-      endTime: { type: Date },
+      startTime: { type: String },
+      endTime: { type: String },
     },
   },
   {
