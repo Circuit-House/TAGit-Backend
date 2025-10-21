@@ -184,26 +184,37 @@ export const approveAllocation = asyncHandler(async (req, res, next) => {
   allocation.requestStatus = true;
   allocation.status = 'approved';
   allocation.allocationStatusDate = new Date();
-
-  if (req.user && req.user.id) {
-    allocation.approvedBy = req.user.id;
-  }
+  if (req.user && req.user.id) allocation.approvedBy = req.user.id;
 
   await allocation.save();
 
-  // Update the asset: mark unavailable and link allocation
+  // Update the asset depending on allocationType
   if (allocation.asset) {
     try {
-      await Asset.findByIdAndUpdate(
-        allocation.asset,
-        {
-          availablity: false,
-          allocation: allocation._id,
-        },
-        { new: true }
-      );
+      const asset = await Asset.findById(allocation.asset);
+
+      if (asset) {
+        // If Owner allocation -> change owner and mark unavailable
+        if (allocation.allocationType === 'Owner' && allocation.allocatedTo) {
+          const willChangeOwner =
+            !asset.owner ||
+            asset.owner.toString() !== allocation.allocatedTo.toString();
+
+          const update = { availablity: false, allocation: allocation._id };
+          if (willChangeOwner) update.owner = allocation.allocatedTo;
+
+          await Asset.findByIdAndUpdate(asset._id, update, { new: true });
+        } else {
+          // Non-owner allocation -> just mark unavailable and link allocation
+          await Asset.findByIdAndUpdate(
+            asset._id,
+            { availablity: false, allocation: allocation._id },
+            { new: true }
+          );
+        }
+      }
     } catch (err) {
-      console.error('Failed to update asset availability on approve:', err);
+      console.error('Failed to update asset on approval:', err);
     }
   }
 
@@ -238,7 +249,17 @@ export const rejectAllocation = asyncHandler(async (req, res, next) => {
   allocation.requestStatus = false;
   allocation.status = 'rejected';
   allocation.allocationStatusDate = new Date();
+  allocation.rejectionReason =
+    req.body.rejectionReason || req.body.reason || allocation.rejectionReason;
+
+  if (req.user && req.user.id) allocation.rejectedBy = req.user.id;
+
   await allocation.save();
+
+  // (Optional) If you want to revert availability when rejected:
+  // if (allocation.asset) {
+  //   await Asset.findByIdAndUpdate(allocation.asset, { availablity: true });
+  // }
 
   const populated = await Allocation.findById(allocation._id).populate(
     allocationPopulate
