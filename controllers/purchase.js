@@ -70,3 +70,17 @@ export const getRequests = asyncHandler(async (req, res, next) => {
     data: request,
   });
 });
+
+// @desc    Get Request List
+// @route   Get /api/v1/purchase/:id
+// @access  Private
+export const getAllRequests = asyncHandler(async (req, res, next) => {
+  let request = await Purchase.find().populate(
+    'requiredBy requestedBy manager',
+    'name email role'
+  );
+  res.status(200).json({
+    success: true,
+    data: request,
+  });
+});

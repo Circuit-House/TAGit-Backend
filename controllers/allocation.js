@@ -163,83 +163,81 @@ export const updateAllocation = asyncHandler(async (req, res, next) => {
   });
 });
 
-/**
- * @desc    Approve Allocation (accept request).
- *          If allocationType === 'Owner' -> update Asset.owner = allocatedTo
- * @route   PUT /api/v1/allocation/:id/approve
- * @access  Private
- */
+// ======================================================
+// @desc     Approve Allocation
+// @route    PUT /api/v1/allocation/:id/approve
+// @access   Private
+// ======================================================
 export const approveAllocation = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
-  if (!isValidId(id))
+  if (!isValidId(id)) {
     return next(new ErrorResponse(`Invalid allocation id ${id}`, 400));
+  }
 
+  // Find allocation
   const allocation = await Allocation.findById(id);
-  if (!allocation)
+  if (!allocation) {
     return next(new ErrorResponse(`Allocation not found with id ${id}`, 404));
+  }
 
-  // set approved fields
+  // Update allocation fields
   allocation.requestStatus = true;
   allocation.status = 'approved';
   allocation.allocationStatusDate = new Date();
 
-  // record who approved if available in req.user
-  if (req.user && req.user.id) allocation.approvedBy = req.user.id;
+  if (req.user && req.user.id) {
+    allocation.approvedBy = req.user.id;
+  }
 
   await allocation.save();
 
-  // If this is an Owner allocation, change the asset owner
-  if (allocation.allocationType === 'Owner' && allocation.allocatedTo) {
-    // Only update asset owner if it's different
-    const asset = await Asset.findById(allocation.asset);
-    if (asset) {
-      if (
-        !asset.owner ||
-        asset.owner.toString() !== allocation.allocatedTo.toString()
-      ) {
-        asset.owner = allocation.allocatedTo;
-        asset.availablity = false;
-        await asset.save();
-      }
+  // Update the asset: mark unavailable and link allocation
+  if (allocation.asset) {
+    try {
+      await Asset.findByIdAndUpdate(
+        allocation.asset,
+        {
+          availablity: false,
+          allocation: allocation._id,
+        },
+        { new: true }
+      );
+    } catch (err) {
+      console.error('Failed to update asset availability on approve:', err);
     }
   }
 
+  // Return populated allocation
   const populated = await Allocation.findById(allocation._id).populate(
     allocationPopulate
   );
 
   res.status(200).json({
     success: true,
+    message: 'Allocation approved successfully',
     data: populated,
   });
 });
 
-/**
- * @desc    Reject Allocation (decline request).
- *          Does NOT change Asset.owner. Sets requestStatus = false and saves reason.
- * @route   PUT /api/v1/allocation/:id/reject
- * @access  Private
- *
- * Accepts optional body: { rejectionReason: "reason text" }
- */
+// ======================================================
+// @desc     Reject Allocation
+// @route    PUT /api/v1/allocation/:id/reject
+// @access   Private
+// ======================================================
 export const rejectAllocation = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
-  if (!isValidId(id))
+  if (!isValidId(id)) {
     return next(new ErrorResponse(`Invalid allocation id ${id}`, 400));
+  }
 
   const allocation = await Allocation.findById(id);
-  if (!allocation)
+  if (!allocation) {
     return next(new ErrorResponse(`Allocation not found with id ${id}`, 404));
+  }
 
   allocation.requestStatus = false;
   allocation.status = 'rejected';
-  allocation.rejectionReason =
-    req.body.rejectionReason || req.body.reason || 'Rejected';
   allocation.allocationStatusDate = new Date();
-
-  // Optionally record who rejected (req.user)
-  if (req.user && req.user.id) allocation.rejectedBy = req.user.id; // note: if you want this, add field to model
-
   await allocation.save();
 
   const populated = await Allocation.findById(allocation._id).populate(
@@ -248,6 +246,7 @@ export const rejectAllocation = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    message: 'Allocation rejected successfully',
     data: populated,
   });
 });

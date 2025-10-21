@@ -33,7 +33,7 @@ const AllocationSchema = new mongoose.Schema(
     // clearer status enum: 'pending' | 'approved' | 'rejected'
     status: {
       type: String,
-      enum: ['pending', 'approved', 'rejected'],
+      enum: ['pending', 'approved', 'rejected', 'completed'],
       default: 'pending',
       index: true,
     },

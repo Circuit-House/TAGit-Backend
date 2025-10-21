@@ -6,6 +6,7 @@ import color from 'colors';
 import errorHandler from './middleware/errorHandler.js';
 import connectDB from './config/db.js';
 import path from 'path';
+import { startAvailabilityScheduler } from './jobs/availabilityScheduler.js';
 
 dotenv.config({ path: './config/config.env' });
 
@@ -19,6 +20,7 @@ import allocation from './routes/allocation.js';
 
 const app = express();
 
+startAvailabilityScheduler();
 //Body Parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

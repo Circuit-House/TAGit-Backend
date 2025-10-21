@@ -4,12 +4,13 @@ import {
   updateManagerRequest,
   updateRequest,
   getRequests,
+  getAllRequests,
 } from '../controllers/purchase.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/', createRequest);
+router.route('/').post(protect, createRequest).get(protect, getAllRequests);
 router
   .route('/:id')
   .put(protect, updateManagerRequest)
