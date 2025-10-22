@@ -26,6 +26,7 @@ const AllocationSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide allocation type'],
     },
+    isRequested: { type: Boolean, default: false },
 
     // legacy boolean for quick checks (kept for backward compatibility)
     requestStatus: { type: Boolean },
